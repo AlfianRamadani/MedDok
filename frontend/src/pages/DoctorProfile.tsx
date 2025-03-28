@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Mail, Phone, MapPin, Award, Clock, Star, Edit, GraduationCap, Users, Activity, FileText, Check, X, Building2 } from 'lucide-react';
-import { DoctorData, DoctorProfileProps } from '../types';
+import { Mail, Phone, MapPin, Edit, FileText, Check } from 'lucide-react';
+import { DoctorProfileProps } from '../types';
 import useActor from '../hooks/useActor';
+import { useAuth } from '../hooks/UseAuth';
+import { Doctor } from '../../../src/declarations/backend/backend.did';
 
 export default function DoctorProfile({ isEditable }: DoctorProfileProps) {
+  const { updateDoctor } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [newSpecialization, setNewSpecialization] = useState('');
-  const [doctorData, setDoctorData] = useState<Partial<DoctorData>>();
+  const [doctorData, setDoctorData] = useState<Partial<Doctor>>({});
   const actor = useActor();
 
   useEffect(() => {
@@ -14,24 +16,20 @@ export default function DoctorProfile({ isEditable }: DoctorProfileProps) {
       actor.getUserDoctorData().then(data => {
         if (data[0]) {
           setDoctorData({
-            name: data[0].fullName || '',
-            specializations: [data[0].specialization],
+            name: data[0].name || '',
+            specialization: data[0].specialization || '',
             email: data[0].email || '',
             phone: data[0].phone || '',
             address: data[0].address || '',
             hospitalAffiliation: data[0].hospitalAffiliation || '',
+            description: data[0].description || '',
           });
         }
       });
     };
     getDoctorData();
-  });
-
-  const stats = [
-    { icon: Users, label: 'Patients', value: '500+' },
-    { icon: Star, label: 'Rating', value: '4.9' },
-    { icon: Activity, label: 'Consultations', value: '1,200+' },
-  ];
+  }, []);
+  console.log(doctorData);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -41,29 +39,9 @@ export default function DoctorProfile({ isEditable }: DoctorProfileProps) {
     }));
   };
 
-  const addSpecialization = () => {
-    if (newSpecialization.trim()) {
-      setDoctorData(prev => ({
-        ...prev,
-        specializations: prev?.specializations ? [...prev.specializations, newSpecialization.trim()] : [newSpecialization.trim()],
-      }));
-      setNewSpecialization('');
-    }
-  };
-
-  const removeSpecialization = (index: number) => {
-    if (!doctorData?.specializations) return;
-    setDoctorData(prev => {
-      if (!prev || !prev.specializations) return prev;
-      return {
-        ...prev,
-        specializations: prev.specializations.filter((_, i) => i !== index),
-      };
-    });
-  };
-
   const handleSave = () => {
     setIsEditing(false);
+    updateDoctor(doctorData);
   };
 
   return (
@@ -87,30 +65,16 @@ export default function DoctorProfile({ isEditable }: DoctorProfileProps) {
               <div>
                 {isEditing ? (
                   <div className='space-y-2'>
-                    <input type='text' name='name' value={doctorData?.name} onChange={handleInputChange} className='bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2 text-2xl font-bold text-white w-full' />
-                    <input type='text' name='specialty' value={doctorData?.specialty} onChange={handleInputChange} className='bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2 text-gray-300 w-full' />
+                    <input type='text' name='name' placeholder='enter your name' value={doctorData?.name} onChange={handleInputChange} className='bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2 text-2xl font-bold text-white w-full' />
+                    <input type='text' placeholder='Enter your specialization' name='specializations' value={doctorData?.specialization} onChange={handleInputChange} className='bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2 text-gray-300 w-full' />
                   </div>
                 ) : (
                   <>
                     <h1 className='text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent'>{doctorData?.name}</h1>
-                    <p className='text-gray-400 mt-1'>{doctorData?.specialty}</p>
+                    <p className='text-gray-400 mt-1'>{doctorData?.specialization}</p>
                   </>
                 )}
               </div>
-              <div className='flex items-center space-x-2'>
-                <span className='px-4 py-1.5 bg-indigo-500/20 text-indigo-300 rounded-full text-sm font-medium'>Verified</span>
-                <span className='px-4 py-1.5 bg-green-500/20 text-green-300 rounded-full text-sm font-medium'>Available</span>
-              </div>
-            </div>
-
-            <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mt-6'>
-              {stats.map((stat, index) => (
-                <div key={index} className='glass-effect rounded-xl p-4 text-center'>
-                  <stat.icon className='w-6 h-6 mx-auto text-indigo-400 mb-2' />
-                  <p className='text-2xl font-bold text-white'>{stat.value}</p>
-                  <p className='text-gray-400 text-sm'>{stat.label}</p>
-                </div>
-              ))}
             </div>
           </div>
         </div>
@@ -125,93 +89,7 @@ export default function DoctorProfile({ isEditable }: DoctorProfileProps) {
               <FileText className='w-5 h-5 mr-2 text-indigo-400' />
               About Me
             </h2>
-            {isEditing ? <textarea name='about' value={doctorData?.about} onChange={handleInputChange} rows={4} className='w-full bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2.5 text-gray-300' /> : <p className='text-gray-300 leading-relaxed'>{doctorData?.about}</p>}
-
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6 pt-4'>
-              <div className='space-y-4'>
-                <h3 className='text-lg font-medium text-white flex items-center'>
-                  <Award className='w-5 h-5 mr-2 text-purple-400' />
-                  Specializations
-                </h3>
-                {isEditing && (
-                  <div className='flex space-x-2'>
-                    <input type='text' value={newSpecialization} onChange={e => setNewSpecialization(e.target.value)} className='flex-1 bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2 text-gray-300' placeholder='Add specialization' />
-                    <button onClick={addSpecialization} className='px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700'>
-                      Add
-                    </button>
-                  </div>
-                )}
-                <ul className='space-y-2'>
-                  {doctorData?.specializations?.map((item, index) => (
-                    <li key={index} className='flex items-center justify-between text-gray-300'>
-                      <div className='flex items-center'>
-                        <span className='w-2 h-2 bg-indigo-400 rounded-full mr-2'></span>
-                        {item}
-                      </div>
-                      {isEditing && (
-                        <button onClick={() => removeSpecialization(index)} className='text-red-400 hover:text-red-300'>
-                          <X className='w-4 h-4' />
-                        </button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div className='glass-effect rounded-2xl p-8 space-y-6'>
-            <h2 className='text-xl font-semibold text-white flex items-center'>
-              <GraduationCap className='w-5 h-5 mr-2 text-indigo-400' />
-              Education & Experience
-            </h2>
-            <div className='space-y-6'>
-              {doctorData?.education?.map((item, index) => (
-                <div key={index} className='flex items-start space-x-4'>
-                  <div className='p-2 bg-indigo-500/20 rounded-lg'>{index === 0 ? <GraduationCap className='w-5 h-5 text-indigo-400' /> : <Building2 className='w-5 h-5 text-indigo-400' />}</div>
-                  {isEditing ? (
-                    <div className='flex-1 space-y-2'>
-                      <input
-                        type='text'
-                        value={item.title}
-                        onChange={e => {
-                          const newEducation = [...(doctorData.education || [])];
-                          newEducation[index] = { ...item, title: e.target.value };
-                          setDoctorData(prev => ({ ...prev, education: newEducation }));
-                        }}
-                        className='w-full bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2 text-white'
-                      />
-                      <input
-                        type='text'
-                        value={item.role}
-                        onChange={e => {
-                          const newEducation = [...(doctorData.education || [])];
-                          newEducation[index] = { ...item, role: e.target.value };
-                          setDoctorData(prev => ({ ...prev, education: newEducation }));
-                        }}
-                        className='w-full bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2 text-gray-300'
-                      />
-                      <input
-                        type='text'
-                        value={item.year}
-                        onChange={e => {
-                          const newEducation = [...(doctorData.education || [])];
-                          newEducation[index] = { ...item, year: e.target.value };
-                          setDoctorData(prev => ({ ...prev, education: newEducation }));
-                        }}
-                        className='w-full bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2 text-indigo-400'
-                      />
-                    </div>
-                  ) : (
-                    <div>
-                      <h3 className='text-lg font-medium text-white'>{item.title}</h3>
-                      <p className='text-gray-400'>{item.role}</p>
-                      <p className='text-sm text-indigo-400 mt-1'>{item.year}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            {isEditing ? <textarea name='description' placeholder='Fill your description' value={doctorData?.description} onChange={handleInputChange} rows={4} className='w-full bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2.5 text-gray-300' /> : <p className='text-gray-300 leading-relaxed'>{doctorData?.description}</p>}
           </div>
         </div>
 
@@ -224,7 +102,6 @@ export default function DoctorProfile({ isEditable }: DoctorProfileProps) {
                 { icon: Mail, label: 'Email', name: 'email', value: doctorData?.email },
                 { icon: Phone, label: 'Phone', name: 'phone', value: doctorData?.phone },
                 { icon: MapPin, label: 'Address', name: 'address', value: doctorData?.address },
-                { icon: Clock, label: 'Working Hours', name: 'workingHours', value: doctorData?.workingHours },
               ].map((item, index) => (
                 <div key={index} className='flex items-center space-x-3'>
                   <div className='p-2 bg-indigo-500/20 rounded-lg'>

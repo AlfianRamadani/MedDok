@@ -5,7 +5,8 @@ import { canisterId, createActor } from '../../../src/declarations/backend';
 import Loading from '../components/Loading';
 import defaultImage from '../assets/img/default.png';
 import { AuthContextType, AuthProviderProps, User } from '../types';
-import { PatientUpdate, UserUpdate } from '../../../src/declarations/backend/backend.did';
+import { DoctorUpdate, PatientUpdate, UserUpdate } from '../../../src/declarations/backend/backend.did';
+import { Principal } from '@dfinity/principal';
 
 const network = import.meta.env.VITE_DFX_NETWORK;
 const identityProvider = network === 'ic' ? 'https://identity.ic0.app' : `http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943/`;
@@ -41,7 +42,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const updatePatient = async (data: PatientUpdate) => {
+  const updatePatient = async (data: PatientUpdate, patientId?: string) => {
     const updateData = {
       name: data.name ? [data.name] : [],
       dateOfBirth: data.dateOfBirth ? [data.dateOfBirth] : [],
@@ -56,14 +57,39 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       height: data.height ? [data.height] : [],
       notes: data.notes ? [data.notes] : [],
       status: data.status ? [data.status] : [],
-      updatedAt: data.updatedAt ? [data.updatedAt] : [],
+      updatedAt: [],
+    };
+
+    try {
+      setLoading(true);
+      const authClient = await AuthClient.create();
+      const identity = authClient.getIdentity();
+      const actor = createActor(canisterId, { agentOptions: { identity } });
+
+      const updatedPatient = patientId ? await actor.updatePatientField(updateData, Principal.fromText(toTepatientId)) : await user.actor.updatePatientField(updateData);
+      if (updatedPatient) setUser(prev => ({ ...prev, patient: updatedPatient[0] }));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateDoctor = async (data: DoctorUpdate) => {
+    const updateData = {
+      name: data.name ? [data.name] : [],
+      email: data.email ? [data.email] : [],
+      phone: data.phone ? [data.phone] : [],
+      specialization: data.specialization ? [data.specialization] : [],
+      licenseNumber: data.licenseNumber ? [data.licenseNumber] : [],
+      hospitalAffiliation: data.hospitalAffiliation ? [data.hospitalAffiliation] : [],
+      address: data.address ? [data.address] : [],
+      description: data.description ? [data.description] : [],
     };
 
     try {
       setLoading(true);
       if (!user.isAuthenticated) return;
-      const updatedPatient = await user.actor?.updatePatientField(updateData);
-      if (updatedPatient) setUser(prev => ({ ...prev, patient: updatedPatient[0] }));
+      const updatedDoctor = await user.actor?.updateDoctorData(updateData);
+      if (updatedDoctor) setUser(prev => ({ ...prev, doctor: updatedDoctor[0] }));
     } finally {
       setLoading(false);
     }
@@ -85,6 +111,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const patientProfile = await actor.getPatientProfile();
           setUser(prev => ({ ...prev, patient: patientProfile[0] }));
         }
+        if (loggedUser[0]?.role === 'doctor') {
+          const doctorProfile = await actor.getDoctorProfile();
+          setUser(prev => ({ ...prev, doctor: doctorProfile[0] }));
+        }
       } else {
         setUser({ actor, authClient, isAuthenticated, principal });
       }
@@ -103,7 +133,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     await user?.authClient?.login({ identityProvider, onSuccess: updateActor });
   };
 
-  const contextValue = useMemo(() => ({ user, login, updatePatient, logout, setLoading, updateUser }), [user]);
+  const contextValue = useMemo(() => ({ user, login, updatePatient, updateDoctor, logout, setLoading, updateUser }), [user]);
 
   return <AuthContext.Provider value={contextValue}>{loading ? <Loading /> : children}</AuthContext.Provider>;
 };

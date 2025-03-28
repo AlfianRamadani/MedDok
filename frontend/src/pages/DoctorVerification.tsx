@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Upload, GraduationCap, FileText, BadgeCheck, Calendar, MapPin, Phone, Mail, ArrowLeft, Loader2 } from 'lucide-react';
+import { Upload, GraduationCap, FileText, BadgeCheck, MapPin, Phone, Mail, ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/UseAuth';
 import useActor from '../hooks/useActor';
 
@@ -12,7 +12,6 @@ const verificationFormSchema = z.object({
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number format'),
   specialization: z.string().min(1, 'Specialization is required'),
   licenseNumber: z.string().min(1, 'License number is required'),
-  graduationYear: z.coerce.number().min(1950, 'Graduation year must be at least 1950').max(new Date().getFullYear(), 'Graduation year cannot be in the future'),
   hospitalAffiliation: z.string().min(1, 'Hospital affiliation is required'),
   address: z.string().min(1, 'Address is required'),
   documents: z
@@ -26,7 +25,7 @@ const verificationFormSchema = z.object({
 type VerificationForm = z.infer<typeof verificationFormSchema>;
 
 export default function DoctorVerification() {
-  const { user, handleRole } = useAuth();
+  const { updateUser, updateDoctor } = useAuth();
   const actor = useActor();
   const navigate = useNavigate();
   const {
@@ -43,7 +42,6 @@ export default function DoctorVerification() {
       phone: '',
       specialization: '',
       licenseNumber: '',
-      graduationYear: 2000,
       hospitalAffiliation: '',
       address: '',
       documents: undefined,
@@ -53,7 +51,7 @@ export default function DoctorVerification() {
 
   const onSubmit: SubmitHandler<VerificationForm> = async (data: VerificationForm) => {
     try {
-      const { fullName, email, phone, specialization, licenseNumber, graduationYear, hospitalAffiliation, address, documents } = data;
+      const { fullName, email, phone, specialization, licenseNumber, hospitalAffiliation, address, documents } = data;
       const files = Array.from(documents as FileList);
       await Promise.all(
         files.map(async file => {
@@ -86,13 +84,24 @@ export default function DoctorVerification() {
           console.log('successfull upload:', file.name);
         })
       )
-        .then(() => actor.addDoctorUserData(fullName, email, phone, specialization, licenseNumber, BigInt(graduationYear), hospitalAffiliation, address))
+        .then(() =>
+          updateDoctor({
+            name: fullName ? [fullName] : [],
+            email: email ? [email] : [],
+            phone: phone ? [phone] : [],
+            specialization: specialization ? [specialization] : [],
+            licenseNumber: licenseNumber ? [licenseNumber] : [],
+            hospitalAffiliation: hospitalAffiliation ? [hospitalAffiliation] : [],
+            address: address ? [address] : [],
+            description: [],
+          })
+        )
         .catch(error => {
           console.error('Error verify:', error);
           return;
         })
         .finally(async () => {
-          handleRole('doctor');
+          updateUser({ role: 'doctor' });
           navigate('/dashboard');
         });
       async function readFileAsArrayBuffer(file: File): Promise<ArrayBuffer | null> {
@@ -170,14 +179,6 @@ export default function DoctorVerification() {
                   <label className='block text-sm font-medium text-gray-300 mb-1'>License Number</label>
                   <input {...register('licenseNumber')} className='w-full bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-gray-100' placeholder='Medical License Number' />
                   {errors.licenseNumber && <p className='text-red-400 text-sm mt-1'>{errors.licenseNumber.message}</p>}
-                </div>
-                <div>
-                  <label className='block text-sm font-medium text-gray-300 mb-1'>
-                    <Calendar className='w-4 h-4 inline mr-1' />
-                    Graduation Year
-                  </label>
-                  <input type='number' {...register('graduationYear')} className='w-full bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-gray-100' placeholder='YYYY' />
-                  {errors.graduationYear && <p className='text-red-400 text-sm mt-1'>{errors.graduationYear.message}</p>}
                 </div>
 
                 <div>

@@ -58,10 +58,19 @@ actor Main {
     phone : Text;
     specialization : Text;
     licenseNumber : Text;
-    graduationYear : Nat;
     hospitalAffiliation : Text;
     address : Text;
     description : Text;
+  };
+  type DoctorUpdate = {
+    name : ?Text;
+    email : ?Text;
+    phone : ?Text;
+    specialization : ?Text;
+    licenseNumber : ?Text;
+    hospitalAffiliation : ?Text;
+    address : ?Text;
+    description : ?Text;
   };
 
   type FileChunk = {
@@ -123,6 +132,14 @@ actor Main {
     let callerKey = { hash = Principal.hash(msg.caller); key = msg.caller };
     Trie.get(patientProfiles, callerKey, Principal.equal);
   };
+  public shared (msg) func getDoctorProfile() : async ?Doctor {
+    let callerKey = { hash = Principal.hash(msg.caller); key = msg.caller };
+    Trie.get(doctorProfiles, callerKey, Principal.equal);
+  };
+  public func getPatient(patientId : Principal) : async ?Patient {
+    let patientKey = { hash = Principal.hash(patientId); key = patientId };
+    Trie.get(patientProfiles, patientKey, Principal.equal);
+  };
 
   // add user
   public shared (msg) func addUser(role : Text) : async ?User {
@@ -150,37 +167,6 @@ actor Main {
   };
   public shared (msg) func checkFileExists(name : Text) : async Bool {
     Option.isSome(HashMap.get(getUserFiles(msg.caller), thash, name));
-  };
-  public shared (msg) func addDoctor(
-    name : Text,
-    email : Text,
-    phone : Text,
-    specialization : Text,
-    licenseNumber : Text,
-    graduationYear : Nat,
-    hospitalAffiliation : Text,
-    address : Text,
-  ) : async ?Doctor {
-    let callerKey = { hash = Principal.hash(msg.caller); key = msg.caller };
-    let newDoctor : Doctor = {
-      name = name;
-      email = email;
-      phone = phone;
-      specialization = specialization;
-      licenseNumber = licenseNumber;
-      graduationYear = graduationYear;
-      hospitalAffiliation = hospitalAffiliation;
-      address = address;
-      description = "";
-    };
-    let (newDoctorProfiles, _) = Trie.put(
-      doctorProfiles,
-      callerKey,
-      Principal.equal,
-      newDoctor,
-    );
-    doctorProfiles := newDoctorProfiles;
-    return ?newDoctor;
   };
 
   public shared ({ caller }) func updateUserField(update : UserUpdate) : async ?User {
@@ -212,12 +198,71 @@ actor Main {
       };
     };
   };
-  public shared ({ caller }) func updatePatientField(update : PatientUpdate) : async ?Patient {
-    let callerKey = { hash = Principal.hash(caller); key = caller };
-    Debug.print("Caller key: " # Principal.toText(callerKey.key));
-    Debug.print(debug_show (update));
+  public shared (msg) func updateDoctorData(update : DoctorUpdate) : async ?Doctor {
+    let callerKey = { hash = Principal.hash(msg.caller); key = msg.caller };
 
     // Fungsi pembantu untuk memperbarui atau membuat pasien baru
+    func updateOrCreateDoctor(existingOpt : ?Doctor) : Doctor {
+      switch (existingOpt) {
+        case (null) {
+          {
+            name = Option.get(update.name, "");
+            email = Option.get(update.email, "");
+            phone = Option.get(update.phone, "");
+            specialization = Option.get(update.specialization, "");
+            licenseNumber = Option.get(update.licenseNumber, "");
+            hospitalAffiliation = Option.get(update.hospitalAffiliation, "");
+            address = Option.get(update.address, "");
+            description = Option.get(update.description, "");
+          };
+        };
+        case (?existing) {
+          {
+            name = Option.get(update.name, existing.name);
+            email = Option.get(update.email, existing.email);
+            phone = Option.get(update.phone, existing.phone);
+            specialization = Option.get(update.specialization, existing.specialization);
+            licenseNumber = Option.get(update.licenseNumber, existing.licenseNumber);
+            hospitalAffiliation = Option.get(update.hospitalAffiliation, existing.hospitalAffiliation);
+            address = Option.get(update.address, existing.address);
+            description = Option.get(update.description, existing.description);
+          };
+        };
+      };
+    };
+
+    // Dapatkan pasien yang ada atau null
+    let existingDoctorOpt = Trie.get(doctorProfiles, callerKey, Principal.equal);
+
+    // Perbarui atau buat pasien
+    let updatedDoctor = updateOrCreateDoctor(existingDoctorOpt);
+
+    // Simpan ke trie
+    let (newDoctorProfiles, _) = Trie.put(
+      doctorProfiles,
+      callerKey,
+      Principal.equal,
+      updatedDoctor,
+    );
+    doctorProfiles := newDoctorProfiles;
+
+    return ?updatedDoctor;
+
+  };
+  public shared ({ caller }) func updatePatientField(update : PatientUpdate, patientId : ?Principal) : async ?Patient {
+    let callerKey = switch (patientId) {
+      case (?id) {
+        if (Principal.isAnonymous(caller)) {
+          { hash = Principal.hash(id); key = id };
+        } else {
+          { hash = Principal.hash(caller); key = caller };
+        };
+      };
+      case (null) {
+        { hash = Principal.hash(caller); key = caller };
+      };
+    };
+
     func updateOrCreatePatient(existingOpt : ?Patient) : Patient {
       switch (existingOpt) {
         case (null) {
@@ -307,38 +352,6 @@ actor Main {
     Trie.get(doctorProfiles, doctorKey, Principal.equal);
   };
 
-  public shared (msg) func editDoctorUserData(
-    name : Text,
-    email : Text,
-    phone : Text,
-    specialization : Text,
-    licenseNumber : Text,
-    graduationYear : Nat,
-    hospitalAffiliation : Text,
-    address : Text,
-    description : Text,
-  ) : async ?Doctor {
-    let callerKey = { hash = Principal.hash(msg.caller); key = msg.caller };
-    let updatedDoctorData : Doctor = {
-      name = name;
-      email = email;
-      phone = phone;
-      specialization = specialization;
-      licenseNumber = licenseNumber;
-      graduationYear = graduationYear;
-      hospitalAffiliation = hospitalAffiliation;
-      address = address;
-      description = description;
-    };
-    let (newDoctorProfiles, _) = Trie.put(
-      doctorProfiles,
-      callerKey,
-      Principal.equal,
-      updatedDoctorData,
-    );
-    doctorProfiles := newDoctorProfiles;
-    return ?updatedDoctorData;
-  };
   public shared func getAllDoctors() : async [(Principal, Doctor)] {
     let doctorDataArray = Trie.toArray<Principal, Doctor, (Principal, Doctor)>(
       doctorProfiles,
@@ -348,9 +361,9 @@ actor Main {
     );
     return doctorDataArray;
   };
-  public shared func getAllAppointments() : async [(Text, Appointment, ?Doctor)] {
+  public shared func getAllAppointments() : async [(Text, Appointment, ?Doctor, ?Patient)] {
     let appointmentsArray = HashMap.toArray<Text, Appointment>(appointments);
-    let enrichedAppointments = Array.map<(Text, Appointment), (Text, Appointment, ?Doctor)>(
+    let enrichedAppointments = Array.map<(Text, Appointment), (Text, Appointment, ?Doctor, ?Patient)>(
       appointmentsArray,
       func((id, appointment)) {
         let doctorKey = {
@@ -358,11 +371,42 @@ actor Main {
           key = appointment.doctorId;
         };
         let doctorData = Trie.get(doctorProfiles, doctorKey, Principal.equal);
-        (id, appointment, doctorData);
+
+        let patientKey = {
+          hash = Principal.hash(appointment.patientId);
+          key = appointment.patientId;
+        };
+        let patientData = Trie.get(patientProfiles, patientKey, Principal.equal);
+
+        (id, appointment, doctorData, patientData);
       },
     );
 
     return enrichedAppointments;
+  };
+  public func markAppointmentAsComplete(appointmentId : Text) : async Bool {
+    switch (HashMap.get(appointments, thash, appointmentId)) {
+      case null { false };
+      case (?existingAppointment) {
+        let updatedAppointment = {
+          existingAppointment with appointmentStatus = "completed"
+        };
+        let _ = HashMap.put(appointments, thash, appointmentId, updatedAppointment);
+        true;
+      };
+    };
+  };
+  public func markAppointmentAsCancelled(appointmentId : Text) : async Bool {
+    switch (HashMap.get(appointments, thash, appointmentId)) {
+      case null { false };
+      case (?existingAppointment) {
+        let updatedAppointment = {
+          existingAppointment with appointmentStatus = "cancelled"
+        };
+        let _ = HashMap.put(appointments, thash, appointmentId, updatedAppointment);
+        true;
+      };
+    };
   };
 
 };

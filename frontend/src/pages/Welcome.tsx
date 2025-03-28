@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/UseAuth';
 
 export default function Welcome() {
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
+  const { updateUser } = useAuth();
 
   return (
     <div className='min-h-screen flex flex-col items-center justify-center space-y-12 px-4 bg-gradient-to-br from-gray-900 via-indigo-950 to-purple-900'>

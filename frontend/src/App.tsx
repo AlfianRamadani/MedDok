@@ -6,7 +6,7 @@ import { AuthProvider } from './context/AuthContext';
 import Error from './pages/Error';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
-import Appointment from './pages/Appointments/Appointment';
+import AppointmentPage from './pages/Appointments/Appointment';
 import Layout from './components/Layout';
 import MedicalHistory from './pages/MedicalHistory';
 import Welcome from './pages/Welcome';
@@ -28,10 +28,9 @@ export default function App() {
                 <ProtectedRoute>
                   <Layout />
                 </ProtectedRoute>
-              }
-            >
+              }>
               <Route index element={<Dashboard />} />
-              <Route path='appointments' element={<Appointment />} />
+              <Route path='appointments' element={<AppointmentPage />} />
               <Route path='appointments/doctor-list' element={<DoctorList />} />
               <Route path='medical-history' element={<MedicalHistory />} />
               <Route path='settings/patient' element={<PatientProfile />} />

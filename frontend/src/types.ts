@@ -50,13 +50,13 @@ export interface User {
     allergies: string[];
     currentMedications: string[];
     chronicConditions: string[];
-      bloodPressure: string;
+    bloodPressure: string;
       heartRate: string;
       temperature: string;
       weight: string;
       height: string;
       status: string;
-      updatedAt: number;
+      updatedAt: Date | undefined | bigint;
     notes: string;
   };
   doctor?: {
@@ -78,6 +78,7 @@ export interface AuthContextType {
   setLoading: (loading: boolean) => void;
   updateUser: (data: any) => void;
   updatePatient: (data: any) => void;
+  updateDoctor: (data: any) => void;
 }
 
 // Definisi tipe untuk AuthProvider props
@@ -87,22 +88,7 @@ export interface AuthProviderProps {
 
 
 
-export interface DoctorData {
-  name: string;
-  specialty: string;
-  about: string;
-  email: string;
-  phone: string;
-  address: string;
-  workingHours: string;
-  specializations: string[];
-  hospitalAffiliation: string;
-  education: Array<{
-    title: string;
-    role: string;
-    year: string;
-  }>;
-}
+
 export interface DoctorProfileProps {
   isEditable: boolean;
 }

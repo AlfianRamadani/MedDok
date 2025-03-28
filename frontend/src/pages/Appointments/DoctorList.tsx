@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { AppointmentForm } from '../../types';
 import useActor from '../../hooks/useActor';
-import { DoctorData } from '../../../../src/declarations/backend/backend.did';
-import { Calendar, Mail, Phone, MapPin, Building2, GraduationCap, ChevronRight } from 'lucide-react';
+import { Calendar, Mail, Phone, MapPin, Building2 } from 'lucide-react';
 import { useAuth } from '../../hooks/UseAuth';
 import { useNavigate } from 'react-router-dom';
 import { Principal } from '@dfinity/principal';
+import { Doctor } from '../../../../src/declarations/backend/backend.did';
 
 export default function DoctorList() {
-  interface DoctorDataWithId extends DoctorData {
+  interface DoctorDataWithId extends Doctor {
     id: string;
   }
 
@@ -18,7 +18,6 @@ export default function DoctorList() {
     description: '',
   });
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [doctorList, setDoctorList] = useState<DoctorDataWithId[]>([]);
   const [selectedDoctor, setSelectedDoctor] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -38,7 +37,7 @@ export default function DoctorList() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await actor.addAppointment(Principal.fromText(form.doctorId), Principal.fromText(user?.principal?.toString() || ''), form.timestamp, form.description).then(() => {
-      navigate(-1);
+      window.history.back();
     });
   };
 
@@ -98,13 +97,13 @@ export default function DoctorList() {
                 </div>
               ))
             : doctorList.map((doctor, index) => (
-                <div key={doctor.id} className={`glass-effect rounded-xl p-6 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 hover:shadow-xl ${selectedDoctor === doctor.id ? 'ring-2 ring-indigo-500' : ''}`} onClick={() => handleDoctorSelect(doctor.id)}>
+                <div key={index} className={`glass-effect rounded-xl p-6 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 hover:shadow-xl ${selectedDoctor === doctor.id ? 'ring-2 ring-indigo-500' : ''}`} onClick={() => handleDoctorSelect(doctor.id)}>
                   <div className='flex items-start space-x-4'>
                     <div className='flex-shrink-0'>
-                      <img src={doctorImages[index % doctorImages.length]} alt={doctor.fullName} className='w-20 h-20 rounded-lg object-cover ring-2 ring-indigo-500/30' />
+                      <img src={doctorImages} alt={doctor.name} className='w-20 h-20 rounded-lg object-cover ring-2 ring-indigo-500/30' />
                     </div>
                     <div className='flex-1 min-w-0'>
-                      <h4 className='text-lg font-semibold text-white truncate'>{doctor.fullName}</h4>
+                      <h4 className='text-lg font-semibold text-white truncate'>{doctor.name}</h4>
                       <p className='text-indigo-400 text-sm'>{doctor.specialization}</p>
 
                       <div className='mt-4 space-y-2'>
@@ -115,10 +114,6 @@ export default function DoctorList() {
                         <div className='flex items-center text-gray-300 text-sm'>
                           <MapPin className='w-4 h-4 mr-2 text-indigo-400' />
                           <span className='truncate'>{doctor.address}</span>
-                        </div>
-                        <div className='flex items-center text-gray-300 text-sm'>
-                          <GraduationCap className='w-4 h-4 mr-2 text-indigo-400' />
-                          <span>Since {doctor.graduationYear.toString()}</span>
                         </div>
                       </div>
                     </div>
@@ -136,10 +131,6 @@ export default function DoctorList() {
                           <span>{doctor.phone}</span>
                         </div>
                       </div>
-                      <button className='p-2 text-indigo-400 hover:text-indigo-300 transition-colors flex'>
-                        <p>View Profile</p>
-                        <ChevronRight className='w-5 h-5' />
-                      </button>
                     </div>
                   </div>
                 </div>
