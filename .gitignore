@@ -1,0 +1,59 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn.lock
+pnpm-lock.yaml
+package-lock.json
+
+# DFX (Dfinity SDK) build artifacts
+.dfx/
+.dfx/local/
+.dfx/cache/
+target/
+.
+
+# Webpack / Vite / React build output
+frontend/dist/
+frontend/.parcel-cache/
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# Environment variables (Sensitive data)
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.*.local
+
+# MacOS system files
+.DS_Store
+*.swp
+*.swo
+*.swn
+
+# Logs & Debug
+logs/
+*.log
+*.bak
+*.pid
+*.seed
+
+# IDE files (VSCode, JetBrains, etc.)
+.vscode/
+.idea/
+*.iml
+
+# LLM cache (Jika ada AI model)
+llm_cache/
+
+# Motoko dependencies (Jika pakai Vessel atau Mops)
+.mops/
+vessel-packages/
+
+# WASM Build Output
+*.wasm
+*.mo.map
+
+src/declarations

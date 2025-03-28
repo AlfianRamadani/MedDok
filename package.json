@@ -1,0 +1,26 @@
+{
+  "name": "hello_world",
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "prebuild": "npm run prebuild --workspaces --if-present",
+    "dev": "npm run dev --workspaces --if-present",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix"
+  },
+  "type": "module",
+  "workspaces": [
+    "frontend"
+  ],
+  "dependencies": {
+    "@dfinity/agent": "^2.3.0",
+    "@hookform/resolvers": "^4.1.3",
+    "ic-auth": "^0.9.1",
+    "mo-fmt": "^0.11.0",
+    "react-hook-form": "^7.54.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "prettier-plugin-motoko": "^0.10.5"
+  }
+}
