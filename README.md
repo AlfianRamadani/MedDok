@@ -127,4 +127,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 📬 Contact
 
-Created by the MedDok Team - feel free to [reach out](mailto:contact@meddok.example.com)!
+Created by the MedDok Team - feel free to [reach out](mailto:alfianr792@gmail.com)!
