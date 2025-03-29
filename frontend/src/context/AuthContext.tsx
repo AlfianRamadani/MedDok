@@ -35,7 +35,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const loggedUser = await user.actor?.updateUserField({ role: data.role ? [data.role] : [], profilePicture: data.profilePicture ? [data.profilePicture] : [] });
       if (loggedUser) setUser(prev => ({ ...prev, role: loggedUser[0]?.role, profilePicture: handleProfilePicture(loggedUser[0]?.profilePicture) }));
       if (data.role) navigate('/dashboard');
-    } catch {
+    } catch (error) {
+      console.error('Error updating user profile:', error);
       alert('Error updating user profile');
     } finally {
       setLoading(false);
@@ -67,6 +68,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const actor = createActor(canisterId, { agentOptions: { identity } });
       const updatedPatient = patientId ? await actor.updatePatientField(updateData as PatientUpdate, [Principal.fromText(patientId)]) : await user.actor.updatePatientField(updateData as PatientUpdate, []);
       if (updatedPatient) setUser(prev => ({ ...prev, patient: updatedPatient[0] }));
+    } catch (error) {
+      console.error('Error updating patient profile:', error);
+      alert('Error updating patient profile');
+      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -89,6 +94,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (!user.isAuthenticated) return;
       const updatedDoctor = await user.actor?.updateDoctorData(updateData);
       if (updatedDoctor) setUser(prev => ({ ...prev, doctor: updatedDoctor[0] }));
+    } catch (error) {
+      console.error('Error updating doctor profile:', error);
+      alert('Error updating doctor profile');
     } finally {
       setLoading(false);
     }

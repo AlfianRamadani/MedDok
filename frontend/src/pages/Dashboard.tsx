@@ -1,5 +1,4 @@
 import DashboardCard from '../components/DashboardCard';
-import TodaysTasks from '../components/TodaysTasks';
 import { UserRole } from '../constants/userRole';
 import useActor from '../hooks/useActor';
 import { useAuth } from '../hooks/UseAuth';
@@ -14,7 +13,6 @@ export default function Dashboard() {
       setUpcomingAppointments(data);
     });
   }, []);
-  console.log(upcomingAppointments);
 
   return (
     <>

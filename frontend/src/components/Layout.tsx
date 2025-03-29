@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/UseAuth';
 
 export default function Layout() {
   const [name, setName] = useState<string>('');
-  const { user, updatePatient } = useAuth();
+  const { user, updatePatient, updateDoctor } = useAuth();
   return (
     <>
       {user && ((user.role === 'doctor' && (!user.doctor || !user.doctor.name)) || (user.role !== 'doctor' && (!user.patient || !user.patient.name))) && (
@@ -17,7 +17,11 @@ export default function Layout() {
               <button
                 onClick={() => {
                   if (name.trim()) {
-                    updatePatient({ name, status: 'editable' });
+                    if (user.role === 'doctor') {
+                      updateDoctor({ name });
+                    } else {
+                      updatePatient({ name, status: 'editable' });
+                    }
                   } else {
                     alert('Name cannot be empty');
                   }

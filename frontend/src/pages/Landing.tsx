@@ -49,7 +49,6 @@ export default function Landing() {
 
   const benefits = ['Find and book appointments with qualified doctors', 'Access your complete medical history', 'Receive appointment reminders', 'Secure messaging with healthcare providers', 'Digital prescriptions and test results', "Manage family members' health records"];
 
-
   return (
     <div className='min-h-screen bg-gradient-to-b from-gray-900 to-gray-800'>
       {/* Hero Section */}

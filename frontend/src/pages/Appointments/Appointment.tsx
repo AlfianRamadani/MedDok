@@ -1,4 +1,4 @@
-import { Calendar, Search, Plus, Stethoscope, MapPin, Phone, Check, X, Edit } from 'lucide-react';
+import { Calendar, Plus, Stethoscope, MapPin, Phone, Check, X, Edit } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/UseAuth';
 import { useEffect, useState } from 'react';
