@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       weight: data.weight ? [data.weight] : [],
       height: data.height ? [data.height] : [],
       notes: data.notes ? [data.notes] : [],
-      status: data.status ? [data.status] : [],
+      status: patientId ? ['non-editable'] : data.status ? [data.status] : [],
       updatedAt: [],
     };
 
@@ -65,8 +65,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const authClient = await AuthClient.create();
       const identity = authClient.getIdentity();
       const actor = createActor(canisterId, { agentOptions: { identity } });
-
-      const updatedPatient = patientId ? await actor.updatePatientField(updateData, Principal.fromText(toTepatientId)) : await user.actor.updatePatientField(updateData);
+      const updatedPatient = patientId ? await actor.updatePatientField(updateData as PatientUpdate, [Principal.fromText(patientId)]) : await user.actor.updatePatientField(updateData as PatientUpdate, []);
       if (updatedPatient) setUser(prev => ({ ...prev, patient: updatedPatient[0] }));
     } finally {
       setLoading(false);

@@ -77,7 +77,7 @@ export interface AuthContextType {
   logout: () => void;
   setLoading: (loading: boolean) => void;
   updateUser: (data: any) => void;
-  updatePatient: (data: any) => void;
+  updatePatient: (data: any, patientId?: string) => void;
   updateDoctor: (data: any) => void;
 }
 

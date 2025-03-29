@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/UseAuth';
 import useActor from '../hooks/useActor';
 
 const verificationFormSchema = z.object({
-  fullName: z.string().min(1, 'Full name is required'),
+  name: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number format'),
   specialization: z.string().min(1, 'Specialization is required'),
@@ -37,7 +37,7 @@ export default function DoctorVerification() {
   } = useForm<VerificationForm>({
     resolver: zodResolver(verificationFormSchema),
     defaultValues: {
-      fullName: '',
+      name: '',
       email: '',
       phone: '',
       specialization: '',
@@ -51,7 +51,6 @@ export default function DoctorVerification() {
 
   const onSubmit: SubmitHandler<VerificationForm> = async (data: VerificationForm) => {
     try {
-      const { fullName, email, phone, specialization, licenseNumber, hospitalAffiliation, address, documents } = data;
       const files = Array.from(documents as FileList);
       await Promise.all(
         files.map(async file => {
@@ -81,21 +80,9 @@ export default function DoctorVerification() {
             console.error(`Upload failed for ${file.name}:`, error);
             return;
           }
-          console.log('successfull upload:', file.name);
         })
       )
-        .then(() =>
-          updateDoctor({
-            name: fullName ? [fullName] : [],
-            email: email ? [email] : [],
-            phone: phone ? [phone] : [],
-            specialization: specialization ? [specialization] : [],
-            licenseNumber: licenseNumber ? [licenseNumber] : [],
-            hospitalAffiliation: hospitalAffiliation ? [hospitalAffiliation] : [],
-            address: address ? [address] : [],
-            description: [],
-          })
-        )
+        .then(() => updateDoctor(data))
         .catch(error => {
           console.error('Error verify:', error);
           return;
@@ -141,8 +128,8 @@ export default function DoctorVerification() {
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div>
                   <label className='block text-sm font-medium text-gray-300 mb-1'>Full Name</label>
-                  <input {...register('fullName')} className='w-full bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-gray-100' placeholder='Dr. John Doe' />
-                  {errors.fullName && <p className='text-red-400 text-sm mt-1'>{errors.fullName.message}</p>}
+                  <input {...register('name')} className='w-full bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-gray-100' placeholder='Dr. John Doe' />
+                  {errors.name && <p className='text-red-400 text-sm mt-1'>{errors.name.message}</p>}
                 </div>
                 <div>
                   <label className='block text-sm font-medium text-gray-300 mb-1'>

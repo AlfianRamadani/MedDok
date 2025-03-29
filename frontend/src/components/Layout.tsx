@@ -8,7 +8,7 @@ export default function Layout() {
   const { user, updatePatient } = useAuth();
   return (
     <>
-      {user && !(user?.patient?.name || user?.doctor?.name) && (
+      {user && ((user.role === 'doctor' && (!user.doctor || !user.doctor.name)) || (user.role !== 'doctor' && (!user.patient || !user.patient.name))) && (
         <>
           <div className='fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 backdrop-blur-md z-50'>
             <div className='bg-white p-6 rounded-lg shadow-lg w-96 relative'>

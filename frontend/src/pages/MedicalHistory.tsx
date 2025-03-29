@@ -138,10 +138,13 @@ export default function MedicalHistory() {
     const result = window.confirm('Are you sure you want to submit the medical records? This action cannot be undone.');
     if (!result) return;
     try {
-      updatePatient({
-        ...record,
-        status: 'non-editable',
-      });
+      updatePatient(
+        {
+          ...record,
+          status: 'non-editable',
+        },
+        params.get('patientId') ?? undefined
+      );
     } catch (error) {
       console.error(error);
     }

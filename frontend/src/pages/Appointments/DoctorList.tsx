@@ -3,13 +3,13 @@ import { AppointmentForm } from '../../types';
 import useActor from '../../hooks/useActor';
 import { Calendar, Mail, Phone, MapPin, Building2 } from 'lucide-react';
 import { useAuth } from '../../hooks/UseAuth';
-import { useNavigate } from 'react-router-dom';
 import { Principal } from '@dfinity/principal';
 import { Doctor } from '../../../../src/declarations/backend/backend.did';
 
 export default function DoctorList() {
   interface DoctorDataWithId extends Doctor {
     id: string;
+    profilePicture: string;
   }
 
   const [form, setForm] = useState<AppointmentForm>({
@@ -25,14 +25,15 @@ export default function DoctorList() {
 
   useEffect(() => {
     actor.getAllDoctors().then(data => {
-      const doctorDataArray = data.map(([principal, doctorData]) => ({
+      const doctorDataArray = data.map(([principal, doctorData, userData]) => ({
         ...doctorData,
         id: principal.toString(),
+        profilePicture: userData.profilePicture ? URL.createObjectURL(new Blob([new Uint8Array(userData.profilePicture[0] || [])])) : '',
       }));
       setDoctorList(doctorDataArray);
       setLoading(false);
     });
-  }, [actor]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,9 +56,6 @@ export default function DoctorList() {
       doctorId: doctorId,
     }));
   };
-
-  // Array of professional doctor images from Unsplash
-  const doctorImages = ['https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80', 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80', 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80', 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80'];
 
   return (
     <div className='space-y-6'>
@@ -100,7 +98,7 @@ export default function DoctorList() {
                 <div key={index} className={`glass-effect rounded-xl p-6 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 hover:shadow-xl ${selectedDoctor === doctor.id ? 'ring-2 ring-indigo-500' : ''}`} onClick={() => handleDoctorSelect(doctor.id)}>
                   <div className='flex items-start space-x-4'>
                     <div className='flex-shrink-0'>
-                      <img src={doctorImages} alt={doctor.name} className='w-20 h-20 rounded-lg object-cover ring-2 ring-indigo-500/30' />
+                      <img src={doctor.profilePicture} alt={doctor.name} className='w-20 h-20 rounded-lg object-cover ring-2 ring-indigo-500/30' />
                     </div>
                     <div className='flex-1 min-w-0'>
                       <h4 className='text-lg font-semibold text-white truncate'>{doctor.name}</h4>

@@ -2,15 +2,15 @@ import Array "mo:base/Array";
 import Blob "mo:base/Blob";
 import Bool "mo:base/Bool";
 import Debug "mo:base/Debug";
+import HashMap "mo:base/HashMap";
 import Int "mo:base/Int";
+import Iter "mo:base/Iter";
 import Nat "mo:base/Nat";
 import Option "mo:base/Option";
 import Principal "mo:base/Principal";
 import Text "mo:base/Text";
 import Time "mo:base/Time";
 import Trie "mo:base/Trie";
-import HashMap "mo:map/Map";
-import { phash; thash } "mo:map/Map";
 actor Main {
   type User = {
     role : Text;
@@ -100,9 +100,9 @@ actor Main {
     appointmentReason : Text;
   };
   // Define a data type for storing files associated with a user principal.
-  type UserFiles = HashMap.Map<Text, File>;
-  private var appointments = HashMap.new<Text, Appointment>();
-  private var files = HashMap.new<Principal, UserFiles>();
+  type UserFiles = HashMap.HashMap<Text, File>;
+  private var appointments = HashMap.HashMap<Text, Appointment>(10, Text.equal, Text.hash);
+  private var files = HashMap.HashMap<Principal, UserFiles>(10, Principal.equal, Principal.hash);
   stable var userProfiles : Trie.Trie<Principal, User> = Trie.empty();
   stable var doctorProfiles : Trie.Trie<Principal, Doctor> = Trie.empty();
   stable var patientProfiles : Trie.Trie<Principal, Patient> = Trie.empty();
@@ -113,15 +113,17 @@ actor Main {
     appointmentDate : Text,
     appointmentReason : Text,
   ) : async ?Appointment {
+    let appointmentId = "appointment-" # Nat.toText(Int.abs(appointments.size() + 1));
     let newAppointment : Appointment = {
-      appointmentId = "appointment-" # Nat.toText(Int.abs(appointments.size() + 1));
+      appointmentId = appointmentId;
       doctorId = doctorId;
       patientId = patientId;
       appointmentDate = appointmentDate;
       appointmentStatus = "pending";
       appointmentReason = appointmentReason;
     };
-    let _ = HashMap.put(appointments, thash, newAppointment.appointmentId, newAppointment);
+
+    appointments.put(appointmentId, newAppointment);
     return ?newAppointment;
   };
   public shared (msg) func getMyProfile() : async ?User {
@@ -154,19 +156,20 @@ actor Main {
     userProfiles := newUserProfiles;
     return ?newUser;
   };
-
   private func getUserFiles(user : Principal) : UserFiles {
-    switch (HashMap.get(files, phash, user)) {
+    switch (files.get(user)) {
       case null {
-        let newFileMap = HashMap.new<Text, File>();
-        let _ = HashMap.put(files, phash, user, newFileMap);
+        let newFileMap = HashMap.HashMap<Text, File>(10, Text.equal, Text.hash);
+        files.put(user, newFileMap);
         newFileMap;
       };
       case (?existingFiles) existingFiles;
     };
   };
+
   public shared (msg) func checkFileExists(name : Text) : async Bool {
-    Option.isSome(HashMap.get(getUserFiles(msg.caller), thash, name));
+    let userFiles = getUserFiles(msg.caller);
+    Option.isSome(userFiles.get(name));
   };
 
   public shared ({ caller }) func updateUserField(update : UserUpdate) : async ?User {
@@ -250,18 +253,17 @@ actor Main {
 
   };
   public shared ({ caller }) func updatePatientField(update : PatientUpdate, patientId : ?Principal) : async ?Patient {
+    Debug.print("Caller: " # Principal.toText(caller));
+    Debug.print("PatientId: " # debug_show (patientId));
     let callerKey = switch (patientId) {
       case (?id) {
-        if (Principal.isAnonymous(caller)) {
-          { hash = Principal.hash(id); key = id };
-        } else {
-          { hash = Principal.hash(caller); key = caller };
-        };
+        { hash = Principal.hash(id); key = id };
       };
       case (null) {
         { hash = Principal.hash(caller); key = caller };
       };
     };
+    Debug.print("Caller Key: " # Principal.toText(callerKey.key));
 
     func updateOrCreatePatient(existingOpt : ?Patient) : Patient {
       switch (existingOpt) {
@@ -321,20 +323,26 @@ actor Main {
 
     return ?updatedPatient;
   };
-  // Upload a file in chunks.
   public shared (msg) func uploadFileChunk(name : Text, chunk : Blob, index : Nat, fileType : Text, documentType : Text) : async () {
     let userFiles = getUserFiles(msg.caller);
     let fileChunk = { chunk = chunk; index = index };
 
-    switch (HashMap.get(userFiles, thash, name)) {
+    switch (userFiles.get(name)) {
       case null {
-        let _ = HashMap.put(userFiles, thash, name, { name = name; chunks = [fileChunk]; totalSize = chunk.size(); fileType = fileType; documentType = documentType });
+        userFiles.put(
+          name,
+          {
+            name = name;
+            chunks = [fileChunk];
+            totalSize = chunk.size();
+            fileType = fileType;
+            documentType = documentType;
+          },
+        );
       };
       case (?existingFile) {
         let updatedChunks = Array.append(existingFile.chunks, [fileChunk]);
-        let _ = HashMap.put(
-          userFiles,
-          thash,
+        userFiles.put(
           name,
           {
             name = name;
@@ -352,17 +360,20 @@ actor Main {
     Trie.get(doctorProfiles, doctorKey, Principal.equal);
   };
 
-  public shared func getAllDoctors() : async [(Principal, Doctor)] {
-    let doctorDataArray = Trie.toArray<Principal, Doctor, (Principal, Doctor)>(
+  public shared func getAllDoctors() : async [(Principal, Doctor, User)] {
+    let doctorDataArray = Trie.toArray<Principal, Doctor, (Principal, Doctor, User)>(
       doctorProfiles,
-      func(key, value) : (Principal, Doctor) {
-        (key, value);
+      func(key, value) : (Principal, Doctor, User) {
+        let userKey = { hash = Principal.hash(key); key = key };
+        let userData = Option.get(Trie.get(userProfiles, userKey, Principal.equal), { role = ""; profilePicture = null });
+        (key, value, userData);
       },
     );
     return doctorDataArray;
   };
   public shared func getAllAppointments() : async [(Text, Appointment, ?Doctor, ?Patient)] {
-    let appointmentsArray = HashMap.toArray<Text, Appointment>(appointments);
+    let appointmentsArray = Iter.toArray(appointments.entries());
+
     let enrichedAppointments = Array.map<(Text, Appointment), (Text, Appointment, ?Doctor, ?Patient)>(
       appointmentsArray,
       func((id, appointment)) {
@@ -381,32 +392,70 @@ actor Main {
         (id, appointment, doctorData, patientData);
       },
     );
-
     return enrichedAppointments;
   };
   public func markAppointmentAsComplete(appointmentId : Text) : async Bool {
-    switch (HashMap.get(appointments, thash, appointmentId)) {
+    switch (appointments.get(appointmentId)) {
       case null { false };
       case (?existingAppointment) {
         let updatedAppointment = {
           existingAppointment with appointmentStatus = "completed"
         };
-        let _ = HashMap.put(appointments, thash, appointmentId, updatedAppointment);
+        let _ = appointments.put(appointmentId, updatedAppointment);
         true;
       };
     };
   };
   public func markAppointmentAsCancelled(appointmentId : Text) : async Bool {
-    switch (HashMap.get(appointments, thash, appointmentId)) {
+    switch (appointments.get(appointmentId)) {
       case null { false };
       case (?existingAppointment) {
         let updatedAppointment = {
           existingAppointment with appointmentStatus = "cancelled"
         };
-        let _ = HashMap.put(appointments, thash, appointmentId, updatedAppointment);
+        let _ = appointments.put(appointmentId, updatedAppointment);
         true;
       };
     };
   };
 
+  public shared ({ caller }) func getUpcomingAppointments() : async [(Text, Appointment, Patient, Doctor)] {
+    // Convert HashMap to Array using Iter.toArray and entries()
+    let appointmentsArray = Iter.toArray(appointments.entries());
+
+    let upcomingAppointments = Array.filter<(Text, Appointment)>(
+      appointmentsArray,
+      func((id, appointment)) {
+        appointment.appointmentStatus == "pending" and appointment.patientId == caller;
+      },
+    );
+
+    let enrichedAppointments = Array.map<(Text, Appointment), (Text, Appointment, Patient, Doctor)>(
+      upcomingAppointments,
+      func((id, appointment)) {
+        let patientKey = {
+          hash = Principal.hash(appointment.patientId);
+          key = appointment.patientId;
+        };
+        let patientData = Trie.get(patientProfiles, patientKey, Principal.equal);
+
+        let doctorKey = {
+          hash = Principal.hash(appointment.doctorId);
+          key = appointment.doctorId;
+        };
+        let doctorData = Trie.get(doctorProfiles, doctorKey, Principal.equal);
+
+        switch (patientData, doctorData) {
+          case (?patient, ?doctor) {
+            (id, appointment, patient, doctor);
+          };
+          case _ {
+            (id, appointment, { name = ""; dateOfBirth = ""; bloodType = ""; allergies = []; currentMedications = []; chronicConditions = []; bloodPressure = ""; heartRate = ""; temperature = ""; weight = ""; height = ""; notes = ""; status = ""; updatedAt = 0 }, { name = ""; email = ""; phone = ""; specialization = ""; licenseNumber = ""; hospitalAffiliation = ""; address = ""; description = "" });
+          };
+        };
+      },
+    );
+
+    return enrichedAppointments;
+  };
 };

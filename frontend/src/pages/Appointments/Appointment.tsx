@@ -120,10 +120,6 @@ export default function AppointmentPage() {
     <>
       <h1 className='text-4xl mb-4 font-semibold'>Appointment Page</h1>
       <div className='flex flex-col sm:flex-row justify-between items-center mb-8 gap-4'>
-        <div className='relative w-full sm:w-96'>
-          <input type='text' placeholder='Search appointments...' className='w-full pl-10 pr-4 py-2 border border-gray-300 glass-effect rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500' />
-          <Search className='absolute left-3 top-2.5 h-5 w-5 text-gray-400' />
-        </div>
         {user?.role === 'patient' && (
           <Link to={'/dashboard/appointments/doctor-list'} className='flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'>
             <Plus className='h-5 w-5 mr-2' />
@@ -140,40 +136,46 @@ export default function AppointmentPage() {
         )
       ) : user?.role === 'patient' ? (
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-          {appointments.map((appointment, index) => (
-            <div key={index} className='bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300'>
-              <div className={`px-4 py-2 text-sm font-semibold text-white ${appointment.appointmentStatus === 'upcoming' ? 'bg-blue-600' : appointment.appointmentStatus === 'completed' ? 'bg-green-600' : 'bg-red-600'}`}>{appointment.appointmentStatus.charAt(0).toUpperCase() + appointment.appointmentStatus.slice(1)}</div>
-              <div className='p-6 space-y-4'>
-                <div className='flex items-center justify-between'>
-                  <div className='flex items-center space-x-2'>
-                    <Calendar className='h-5 w-5 text-blue-600' />
-                    <span className='text-gray-700 font-medium'>{new Date(appointment.appointmentDate).toLocaleString()}</span>
+          {appointments.length > 0 ? (
+            appointments.map((appointment, index) => (
+              <div key={index} className='bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300'>
+                <div className={`px-4 py-2 text-sm font-semibold text-white ${appointment.appointmentStatus === 'upcoming' ? 'bg-blue-600' : appointment.appointmentStatus === 'completed' ? 'bg-green-600' : 'bg-red-600'}`}>{appointment.appointmentStatus.charAt(0).toUpperCase() + appointment.appointmentStatus.slice(1)}</div>
+                <div className='p-6 space-y-4'>
+                  <div className='flex items-center justify-between'>
+                    <div className='flex items-center space-x-2'>
+                      <Calendar className='h-5 w-5 text-blue-600' />
+                      <span className='text-gray-700 font-medium'>{new Date(appointment.appointmentDate).toLocaleString()}</span>
+                    </div>
                   </div>
-                </div>
 
-                <div className='space-y-2'>
-                  <div className='flex items-center space-x-2'>
-                    <Stethoscope className='h-5 w-5 text-blue-600' />
-                    <div>
-                      <p className='font-semibold text-gray-900'>{appointment?.doctorData?.name}</p>
-                      <p className='text-sm text-gray-600'>{appointment?.doctorData?.specialization}</p>
+                  <div className='space-y-2'>
+                    <div className='flex items-center space-x-2'>
+                      <Stethoscope className='h-5 w-5 text-blue-600' />
+                      <div>
+                        <p className='font-semibold text-gray-900'>{appointment?.doctorData?.name}</p>
+                        <p className='text-sm text-gray-600'>{appointment?.doctorData?.specialization}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className='space-y-2 pt-2 border-t border-gray-100'>
+                    <div className='flex items-center space-x-2 text-sm text-gray-600'>
+                      <MapPin className='h-4 w-4' />
+                      <span>{appointment?.doctorData?.hospitalAffiliation}</span>
+                    </div>
+                    <div className='flex items-center space-x-2 text-sm text-gray-600'>
+                      <Phone className='h-4 w-4' />
+                      <span>{appointment?.doctorData?.phone}</span>
                     </div>
                   </div>
                 </div>
-
-                <div className='space-y-2 pt-2 border-t border-gray-100'>
-                  <div className='flex items-center space-x-2 text-sm text-gray-600'>
-                    <MapPin className='h-4 w-4' />
-                    <span>{appointment?.doctorData?.hospitalAffiliation}</span>
-                  </div>
-                  <div className='flex items-center space-x-2 text-sm text-gray-600'>
-                    <Phone className='h-4 w-4' />
-                    <span>{appointment?.doctorData?.phone}</span>
-                  </div>
-                </div>
               </div>
+            ))
+          ) : (
+            <div className='bg-white rounded-lg text-center col-span-3 shadow overflow-hidden p-6'>
+              <p className='text-gray-700'>No appointments found.</p>
             </div>
-          ))}
+          )}
         </div>
       ) : (
         <div className='bg-white rounded-lg shadow overflow-hidden glass-effect'>
@@ -188,39 +190,50 @@ export default function AppointmentPage() {
               </tr>
             </thead>
             <tbody className='divide-y divide-gray-200'>
-              {appointments.map((appointment, index) => (
-                <tr key={index}>
-                  <td className='px-6 py-4 whitespace-nowrap'>
-                    <div className='text-sm font-medium text-white'>{appointment?.patientData?.name}</div>
-                  </td>
-                  <td className='px-6 py-4 whitespace-nowrap'>
-                    <div className='text-sm text-white'>{new Date(appointment?.appointmentDate).toLocaleString()}</div>
-                  </td>
-                  <td className='px-6 py-4 whitespace-nowrap'>
-                    <div className='text-sm text-white'>{appointment?.appointmentReason}</div>
-                  </td>
-                  <td className='px-6 py-4 whitespace-nowrap'>
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${appointment.appointmentStatus === 'upcoming' ? 'bg-green-100 text-green-800' : appointment.appointmentStatus === 'completed' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'}`}>{appointment.appointmentStatus.charAt(0).toUpperCase() + appointment.appointmentStatus.slice(1)}</span>
-                  </td>
-                  <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
-                    <div className='flex items-center space-x-2'>
-                      {appointment.appointmentStatus !== 'completed' && (
-                        <button onClick={() => handleActionClick('complete', appointment.appointmentId)} className='p-1 text-green-600 hover:bg-green-100 rounded' title='Mark as Complete'>
-                          <Check className='h-5 w-5' />
-                        </button>
-                      )}
-                      <button onClick={() => handleActionClick('edit', appointment.appointmentId, appointment.patientId)} className='p-1 text-yellow-600 hover:bg-yellow-100 rounded' title='Edit Details'>
-                        <Edit className='h-5 w-5' />
-                      </button>
-                      {appointment.appointmentStatus !== 'completed' && (
-                        <button onClick={() => handleActionClick('cancel', appointment.appointmentId)} className='p-1 text-red-600 hover:bg-red-100 rounded' title='Cancel Appointment'>
-                          <X className='h-5 w-5' />
-                        </button>
-                      )}
-                    </div>
+              {appointments.length > 0 ? (
+                appointments.map((appointment, index) => (
+                  <tr key={index}>
+                    <td className='px-6 py-4 whitespace-nowrap'>
+                      <div className='text-sm font-medium text-white'>{appointment?.patientData?.name}</div>
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap'>
+                      <div className='text-sm text-white'>{new Date(appointment?.appointmentDate).toLocaleString()}</div>
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap'>
+                      <div className='text-sm text-white'>{appointment?.appointmentReason}</div>
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap'>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${appointment.appointmentStatus === 'upcoming' ? 'bg-green-100 text-green-800' : appointment.appointmentStatus === 'completed' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'}`}>{appointment.appointmentStatus.charAt(0).toUpperCase() + appointment.appointmentStatus.slice(1)}</span>
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
+                      <div className='flex items-center space-x-2'>
+                        {appointment.appointmentStatus !== 'completed' && appointment.appointmentStatus !== 'cancelled' && (
+                          <button onClick={() => handleActionClick('complete', appointment.appointmentId)} className='p-1 text-green-600 hover:bg-green-100 rounded' title='Mark as Complete'>
+                            <Check className='h-5 w-5' />
+                          </button>
+                        )}
+                        {appointment.appointmentStatus == 'pending' && (
+                          <>
+                            <button onClick={() => handleActionClick('edit', appointment.appointmentId, appointment.patientId)} className='p-1 text-yellow-600 hover:bg-yellow-100 rounded' title='Edit Details'>
+                              <Edit className='h-5 w-5' />
+                            </button>
+
+                            <button onClick={() => handleActionClick('cancel', appointment.appointmentId)} className='p-1 text-red-600 hover:bg-red-100 rounded' title='Cancel Appointment'>
+                              <X className='h-5 w-5' />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className='px-6 py-4 text-center text-gray-500'>
+                    No appointments found.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
