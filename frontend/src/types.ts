@@ -7,6 +7,18 @@ export interface HealthMetric {
   value: number;
 }
 
+export interface VerificationForm {
+  name: string;
+  email: string;
+  phone: string;
+  specialization: string;
+  licenseNumber: string;
+  hospitalAffiliation: string;
+  address: string;
+  documents: FileList | null;
+}
+
+
 export interface DailyActivity {
   steps: number;
   calories: number;

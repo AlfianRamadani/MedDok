@@ -27,7 +27,7 @@ MedDok is a decentralized application that helps healthcare professionals stream
 
 - **Decentralized Storage**: Medical documentation secured on the blockchain
 - **Data Verification**: Blockchain-based verification ensures authenticity
-- **Appointment System**: Schedule appointments and reminders
+- **Appointment System**: Schedule appointments
 - **Modern UI/UX**: Intuitive interface built with React and TypeScript
 - **Enterprise Security**: HIPAA-compliant storage solutions
 - **Transparent Handling**: Secure and verifiable data processing
@@ -46,7 +46,9 @@ sh -ci "$(curl -fsSL https://internetcomputer.org/install.sh)"
 
 # Install dependencies
 npm install
-```
+
+# If you encounter issues during installation
+npm install --legacy-peer-deps
 
 ## 🖥️ Usage
 

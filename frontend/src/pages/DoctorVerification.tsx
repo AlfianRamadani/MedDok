@@ -3,17 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Upload, GraduationCap, FileText, BadgeCheck, MapPin, Phone, Mail, ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/UseAuth';
 import useActor from '../hooks/useActor';
-
-interface VerificationForm {
-  fullName: string;
-  email: string;
-  phone: string;
-  specialization: string;
-  licenseNumber: string;
-  hospitalAffiliation: string;
-  address: string;
-  documents: FileList | null;
-}
+import { VerificationForm } from '../types';
 
 export default function DoctorVerification() {
   const navigate = useNavigate();
@@ -22,7 +12,7 @@ export default function DoctorVerification() {
   const actor = useActor();
   const [errors, setErrors] = useState<Partial<Record<keyof VerificationForm, string>>>({});
   const [form, setForm] = useState<VerificationForm>({
-    fullName: '',
+    name: '',
     email: '',
     phone: '',
     specialization: '',
@@ -35,7 +25,7 @@ export default function DoctorVerification() {
   const validateForm = () => {
     const newErrors: Partial<Record<keyof VerificationForm, string>> = {};
 
-    if (!form.fullName) newErrors.fullName = 'Full name is required';
+    if (!form.name) newErrors.name = 'Full name is required';
     if (!form.email) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
@@ -44,7 +34,7 @@ export default function DoctorVerification() {
     if (!form.phone) {
       newErrors.phone = 'Phone number is required';
     } else if (!/^\+?[1-9]\d{1,14}$/.test(form.phone)) {
-      newErrors.phone = 'Invalid phone number format';
+      newErrors.phone = 'Invalid phone number format, example: +1000000000';
     }
     if (!form.specialization) newErrors.specialization = 'Specialization is required';
     if (!form.licenseNumber) newErrors.licenseNumber = 'License number is required';
@@ -63,7 +53,6 @@ export default function DoctorVerification() {
         newErrors.documents = 'Invalid file(s). Only PDF, JPEG, and PNG files under 3MB are allowed';
       }
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -184,8 +173,8 @@ export default function DoctorVerification() {
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div>
                   <label className='block  text-sm font-medium text-gray-300 mb-1'>Full Name</label>
-                  <input type='text' name='fullName' value={form.fullName} onChange={handleChange} className='w-full bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-gray-100' placeholder='Dr. John Doe' />
-                  {errors.fullName && <p className='text-red-400 text-sm mt-1'>{errors.fullName}</p>}
+                  <input type='text' name='name' value={form.name} onChange={handleChange} className='w-full bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-gray-100' placeholder='Dr. John Doe' />
+                  {errors.name && <p className='text-red-400 text-sm mt-1'>{errors.name}</p>}
                 </div>
                 <div>
                   <label className='block text-sm font-medium text-gray-300 mb-1'>
