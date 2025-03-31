@@ -49,6 +49,7 @@ npm install
 
 # If you encounter issues during installation
 npm install --legacy-peer-deps
+```
 
 ## 🖥️ Usage
 
