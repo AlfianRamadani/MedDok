@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       height: data.height ? [data.height] : [],
       notes: data.notes ? [data.notes] : [],
       status: patientId ? ['non-editable'] : data.status ? [data.status] : [],
-      updatedAt: [],
+      updatedAt: []
     };
 
     try {
@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       licenseNumber: data.licenseNumber ? [data.licenseNumber] : [],
       hospitalAffiliation: data.hospitalAffiliation ? [data.hospitalAffiliation] : [],
       address: data.address ? [data.address] : [],
-      description: data.description ? [data.description] : [],
+      description: data.description ? [data.description] : []
     };
 
     try {
