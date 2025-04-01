@@ -6,6 +6,8 @@
 
 > A Web3-based medical documentation platform built on the Internet Computer Protocol (ICP).
 
+![MeddokWebAppPoster](frontend/src/assets/img/poster.png)
+
 ## 📋 Table of Contents
 
 - [Description](#-description)
