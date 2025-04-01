@@ -10,10 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@dfinity/agent": "2.3.0",
-    "@dfinity/auth-client": "2.3.0",
-    "@dfinity/candid": "2.3.0",
-    "@dfinity/principal": "2.3.0",
+    "@dfinity/agent": "2.4.0",
+    "@dfinity/auth-client": "2.4.0",
+    "@dfinity/candid": "2.4.0",
+    "@dfinity/principal": "2.4.0",
     "@headlessui/react": "^1.7.18",
     "babel-eslint": "^10.1.0",
     "lucide-react": "^0.344.0",
