@@ -204,7 +204,7 @@ export default function DoctorProfile({ isEditable }: DoctorProfileProps) {
                   </div>
                   <div className='flex-1'>
                     <p className='text-sm text-gray-400'>{item.label}</p>
-                    {isEditing ? <input type='text' name={item.name} value={item.value} onChange={handleInputChange} className='w-full bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2 text-gray-200' /> : <p className='text-gray-200'>{item.value}</p>}
+                    {isEditing ? <input type='text' name={item.name} value={item.value} onChange={handleInputChange} className='w-full bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2 text-gray-200' /> : <p className='text-gray-200 break-all'>{item.value}</p>}
                   </div>
                 </div>
               ))}

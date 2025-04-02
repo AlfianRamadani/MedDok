@@ -152,9 +152,9 @@ export default function MedicalHistory() {
 
   return (
     <div className='space-y-6'>
-      <div className='flex items-center justify-between'>
+      <div className='flex md:flex-row flex-col md:items-center justify-between'>
         <h1 className='text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent'>Medical Record</h1>
-        {<h2>Last Updated at: {record?.updatedAt ? record?.updatedAt?.toLocaleString() : 'N/A'}</h2>}
+        {<h2 className='text-sm md:text-xl'>Last Updated at: {record?.updatedAt ? record?.updatedAt?.toLocaleString() : 'N/A'}</h2>}
       </div>
 
       <form onSubmit={handleSubmit} className='glass-effect rounded-2xl p-8 space-y-6'>
@@ -192,7 +192,7 @@ export default function MedicalHistory() {
                 <field.icon className='w-4 h-4' />
                 <span>{field.label}</span>
               </label>
-              <div className='flex space-x-2'>
+              <div className='flex md:flex-row flex-col gap-2 md:gap-0 md:space-x-2'>
                 <input type='text' value={listInputs[field.name as keyof typeof listInputs]} onChange={e => handleListInputChange(field.name, e.target.value)} className='flex-1 bg-gray-900/50 border border-indigo-500/30 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-gray-100' placeholder={field.placeholder} />
                 <button type='button' onClick={() => addItem(field.name as keyof typeof listInputs)} className='p-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700'>
                   <Plus className='w-5 h-5' />
