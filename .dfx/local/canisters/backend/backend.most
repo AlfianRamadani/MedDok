@@ -1,0 +1,58 @@
+// Version: 1.0.0
+type AssocList<K, V> = List<(K, V)>;
+type AssocList__1<K, V> = AssocList<K, V>;
+type Branch<K, V> = {left : Trie<K, V>; right : Trie<K, V>; size : Nat};
+type Doctor =
+  {
+    address : Text;
+    description : Text;
+    email : Text;
+    hospitalAffiliation : Text;
+    licenseNumber : Text;
+    name : Text;
+    phone : Text;
+    specialization : Text
+  };
+type Hash = Nat32;
+type Key__1<K> = {hash : Hash; key : K};
+type Leaf<K, V> = {keyvals : AssocList__1<Key__1<K>, V>; size : Nat};
+type List<T> = ?(T, List<T>);
+type Patient =
+  {
+    allergies : [Text];
+    bloodPressure : Text;
+    bloodType : Text;
+    chronicConditions : [Text];
+    currentMedications : [Text];
+    dateOfBirth : Text;
+    heartRate : Text;
+    height : Text;
+    name : Text;
+    notes : Text;
+    status : Text;
+    temperature : Text;
+    updatedAt : Int;
+    weight : Text
+  };
+type Trie<K, V> = {#branch : Branch<K, V>; #empty; #leaf : Leaf<K, V>};
+type User = {profilePicture : ?Blob; role : Text};
+actor {
+  stable var doctorProfiles :
+    {
+      #branch : Branch<Principal, Doctor>;
+      #empty;
+      #leaf : Leaf<Principal, Doctor>
+    };
+  stable var patientProfiles :
+    {
+      #branch : Branch<Principal, Patient>;
+      #empty;
+      #leaf : Leaf<Principal, Patient>
+    };
+  stable var userProfiles :
+    {
+      #branch : Branch<Principal, User>;
+      #empty;
+      #leaf : Leaf<Principal, User>
+    }
+};

@@ -5,13 +5,6 @@ yarn.lock
 pnpm-lock.yaml
 package-lock.json
 
-# DFX (Dfinity SDK) build artifacts
-.dfx/
-.dfx/local/
-.dfx/cache/
-target/
-.
-
 # Webpack / Vite / React build output
 frontend/dist/
 frontend/.parcel-cache/
